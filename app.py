@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from time import sleep
+from flask import Flask, request, render_template
 from telethon import TelegramClient, events, errors
 
 # Thay đổi các thông số sau đây cho đúng
@@ -8,40 +8,29 @@ api_id = int(os.environ.get('API_ID', '21357718'))  # Nhập API_ID
 api_hash = os.environ.get('API_HASH', 'df3564e279df7787a6292c45b177524a')  # Nhập API_HASH
 phone_number = os.environ.get('PHONE_NUMBER', '+84367729142')  # Nhập PHONE_NUMBER
 
-# Hàm kết nối đến cơ sở dữ liệu với retry
-def connect_with_retry(db_name, retries=3):
-    for i in range(retries):
-        try:
-            conn = sqlite3.connect(db_name)
-            conn.execute('PRAGMA busy_timeout = 30000')  # Thay đổi timeout
-            return conn
-        except sqlite3.OperationalError:
-            if i < retries - 1:
-                sleep(1)  # Chờ 1 giây trước khi thử lại
-    raise Exception("Could not connect to database after multiple attempts.")
-
-# Kết nối đến cơ sở dữ liệu SQLite
-conn = connect_with_retry('session_db.sqlite')
-
-# Khởi tạo client Telegram
+app = Flask(__name__)
 client = TelegramClient('session_name', api_id, api_hash)
 
-async def main():
-    await client.start()
-    
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/submit_code', methods=['POST'])
+def submit_code():
+    code = request.form.get('code')
     try:
-        # Nếu chưa đăng nhập, yêu cầu người dùng nhập mã xác thực
-        if not await client.is_user_authorized():
-            print("Vui lòng nhập mã xác thực nhận được từ Telegram.")
-            code = input("Nhập mã xác thực: ")
-            await client.sign_in(phone_number, code)
+        # Bắt đầu client và đăng nhập
+        with client:
+            client.loop.run_until_complete(client.start())
+            if not client.is_user_authorized():
+                client.loop.run_until_complete(client.sign_in(phone_number, code))
+                return "Đăng nhập thành công!"
+            else:
+                return "Bạn đã đăng nhập thành công trước đó."
     except errors.FloodWait as e:
-        print(f"Bạn đã bị giới hạn. Vui lòng thử lại sau {e.seconds} giây.")
+        return f"Bạn đã bị giới hạn. Vui lòng thử lại sau {e.seconds} giây."
     except Exception as e:
-        print(f"Có lỗi xảy ra: {e}")
+        return f"Có lỗi xảy ra: {e}"
 
-    print("Đăng nhập thành công!")
-
-# Chạy ứng dụng
-with client:
-    client.loop.run_until_complete(main())
+if __name__ == '__main__':
+    app.run()
