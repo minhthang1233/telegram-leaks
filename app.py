@@ -1,12 +1,12 @@
 import os
 from telethon import TelegramClient
 import logging
+import asyncio
 
 # Thiết lập logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Lấy thông tin từ biến môi trường
 api_id = os.getenv('API_ID', '21357718')
 api_hash = os.getenv('API_HASH', 'df3564e279df7787a6292c45b177524a')
 phone_number = os.getenv('PHONE_NUMBER', '+84367729142')
@@ -31,5 +31,6 @@ async def main():
 def modify_links(text):
     return text.replace('lazada.com', 'example.com')
 
-with client:
-    client.loop.run_until_complete(main())
+if __name__ == "__main__":
+    with client:
+        client.loop.run_until_complete(main())
