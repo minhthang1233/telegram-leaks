@@ -3,22 +3,32 @@ import asyncio
 from telethon import TelegramClient, events
 
 # Cấu hình API ID, API Hash và số điện thoại từ biến môi trường
-api_id = int(os.environ.get('API_ID'))  # Nhập API_ID
-api_hash = os.environ.get('API_HASH')  # Nhập API_HASH
-phone = os.environ.get('PHONE_NUMBER')  # Nhập số điện thoại
+api_id = int(os.environ.get('21357718'))  # Nhập API_ID
+api_hash = os.environ.get('df3564e279df7787a6292c45b177524a')  # Nhập API_HASH
+phone = os.environ.get('+84367729142')  # Nhập số điện thoại
 
-# Khởi tạo client Telegram
+# Khởi tạo client Telegram với tính năng lưu trữ phiên
 client = TelegramClient('session_name', api_id, api_hash)
 
 async def main():
+    # Bắt đầu client
     await client.start(phone)
-    
-    # Lấy mã xác nhận từ biến môi trường
-    code = os.environ.get('TELEGRAM_CODE')  # Biến môi trường chứa mã xác nhận
-    if code:
-        await client.sign_in(phone, code)
-    else:
-        print("Mã xác nhận không có trong biến môi trường.")
+
+    # Kiểm tra xem đã đăng nhập chưa
+    if not await client.is_user_authorized():
+        # Nếu chưa đăng nhập, gửi mã xác nhận
+        print("Chưa đăng nhập, hãy nhập mã xác nhận.")
+        code = os.environ.get('TELEGRAM_CODE')
+        if code:
+            try:
+                await client.sign_in(phone, code)
+                print("Đăng nhập thành công!")
+            except Exception as e:
+                print(f"Lỗi khi đăng nhập: {e}")
+                return
+        else:
+            print("Mã xác nhận không có trong biến môi trường. Vui lòng nhập mã xác nhận lần đầu.")
+            return
 
     # Lắng nghe tin nhắn mới từ nhóm nguồn
     @client.on(events.NewMessage(chats='t.me/thutele1234'))
