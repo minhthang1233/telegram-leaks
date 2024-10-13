@@ -1,32 +1,29 @@
 from telethon import TelegramClient, events
-import os
 
-API_ID = os.environ.get('API_ID')
-API_HASH = os.environ.get('API_HASH')
-PHONE_NUMBER = os.environ.get('PHONE_NUMBER')
+# Thay thế giá trị dưới đây bằng thông tin của bạn
+API_ID = '21357718'
+API_HASH = 'df3564e279df7787a6292c45b177524a'
+PHONE_NUMBER = '+84367729142'
 
-# Thay đổi tên nhóm để lấy tin nhắn và gửi tin nhắn
-SOURCE_GROUP = 'sanbanshopee'  # Nhóm bạn muốn lấy tin nhắn
-TARGET_GROUP = 'thutele12344'    # Nhóm bạn muốn gửi tin nhắn đến
-
+# Khởi tạo client
 client = TelegramClient('session_name', API_ID, API_HASH)
 
-@client.on(events.NewMessage(chats=SOURCE_GROUP))
+# Nhóm nguồn và nhóm đích
+source_group = 't.me/thutele1234'
+destination_group = 't.me/thutele12344'
+
+@client.on(events.NewMessage(chats=source_group))
 async def handler(event):
-    # Lấy nội dung tin nhắn
-    message_text = event.message.message
-    
-    # Nếu cần sửa đổi nội dung tin nhắn, có thể thực hiện ở đây
-    modified_message = message_text  # Sửa đổi nếu cần
-    
-    # Gửi tin nhắn vào nhóm mục tiêu
-    await client.send_message(TARGET_GROUP, modified_message)
-    print(f'Gửi tin nhắn: {modified_message}')
+    message = event.message
+    # Gửi tin nhắn đến nhóm đích
+    await client.send_message(destination_group, message.text)
 
 async def main():
     await client.start()
-    print('Đăng nhập thành công!')
+    print("Đã đăng nhập thành công")
 
-with client:
+    # Bắt đầu lắng nghe các tin nhắn mới
+    await client.run_until_disconnected()
+
+if __name__ == '__main__':
     client.loop.run_until_complete(main())
-    client.run_until_disconnected()
