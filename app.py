@@ -11,7 +11,7 @@ async def main():
     await client.start(phone=phone_number)
 
     # Thay thế 'sanbanshopee' bằng username của nhóm nguồn
-    async for message in client.iter_messages('sanbanshopee', limit=10):
+    async for message in client.iter_messages('thutele1234', limit=10):
         if message.text:
             print(f"Original message: {message.text}")
             modified_message = modify_links(message.text)
