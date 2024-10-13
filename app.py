@@ -3,12 +3,16 @@ import asyncio
 from telethon import TelegramClient, events
 
 # Cấu hình API ID, API Hash và số điện thoại từ biến môi trường
-api_id = int(os.environ.get('21357718')  # Nhập API_ID
+api_id = os.environ.get('21357718')  # Nhập API_ID
 api_hash = os.environ.get('df3564e279df7787a6292c45b177524a')  # Nhập API_HASH
 phone = os.environ.get('+84367729142')  # Nhập số điện thoại
 
+# Kiểm tra xem biến môi trường có tồn tại không
+if api_id is None or api_hash is None or phone is None:
+    raise ValueError("API_ID, API_HASH và PHONE_NUMBER phải được thiết lập trong biến môi trường.")
+
 # Khởi tạo client Telegram với tính năng lưu trữ phiên
-client = TelegramClient('session_name', api_id, api_hash)
+client = TelegramClient('session_name', int(api_id), api_hash)
 
 async def main():
     # Bắt đầu client
