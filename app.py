@@ -1,36 +1,44 @@
 import os
 import asyncio
+from flask import Flask, request, render_template
 from telethon import TelegramClient, events
+
+app = Flask(__name__)
 
 # Cấu hình API ID, API Hash và số điện thoại từ biến môi trường
 api_id = os.environ.get('API_ID')  # Nhập API_ID
 api_hash = os.environ.get('API_HASH')  # Nhập API_HASH
 phone = os.environ.get('PHONE_NUMBER')  # Nhập PHONE_NUMBER
-telegram_code = os.environ.get('TELEGRAM_CODE')  # Mã xác thực từ Telegram
-
-# Kiểm tra xem các biến môi trường đã được thiết lập chưa
-if not all([api_id, api_hash, phone]):
-    raise ValueError("API_ID, API_HASH và PHONE_NUMBER phải được thiết lập trong biến môi trường.")
 
 # Khởi tạo client Telegram
 client = TelegramClient('session_name', api_id, api_hash)
 
-async def main():
-    # Đăng nhập vào tài khoản Telegram
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/login', methods=['POST'])
+async def login():
+    code = request.form['code']
     await client.start(phone)
 
-    # Lắng nghe các tin nhắn mới từ nhóm gốc
+    # Xác thực người dùng
+    if not await client.is_user_authorized():
+        try:
+            await client.sign_in(phone, code)
+            return "Đăng nhập thành công! Bây giờ bạn có thể lắng nghe tin nhắn."
+        except Exception as e:
+            return f"Lỗi: {str(e)}"
+
+@app.route('/listen')
+async def listen():
     @client.on(events.NewMessage(chats='t.me/thutele1234'))
     async def handler(event):
-        # Lấy nội dung tin nhắn mới
         message = event.message.message
-        # Gửi tin nhắn đến nhóm mới
         await client.send_message('t.me/thutele12344', message)
 
     print("Đang lắng nghe tin nhắn mới...")
-    # Bắt đầu chạy client
     await client.run_until_disconnected()
 
-# Chạy ứng dụng
 if __name__ == '__main__':
-    asyncio.run(main())
+    app.run(debug=True)
