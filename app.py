@@ -3,7 +3,7 @@ import asyncio
 from telethon import TelegramClient, events
 
 # Cấu hình API ID, API Hash và số điện thoại từ biến môi trường
-api_id = int(os.environ.get('21357718'))  # Nhập API_ID
+api_id = int(os.environ.get('21357718')  # Nhập API_ID
 api_hash = os.environ.get('df3564e279df7787a6292c45b177524a')  # Nhập API_HASH
 phone = os.environ.get('+84367729142')  # Nhập số điện thoại
 
