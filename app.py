@@ -9,7 +9,13 @@ phone = os.environ.get('PHONE_NUMBER')  # Thay vì yêu cầu nhập liệu
 client = TelegramClient('session_name', api_id, api_hash)
 
 async def main():
-    await client.start(phone)  # Dùng phone từ biến môi trường
+    await client.start(phone)
+
+    # Xử lý mã xác minh
+    async def code_callback():
+        return os.environ.get('VERIFICATION_CODE')  # Lấy mã từ biến môi trường
+
+    client.sign_in(phone, code_callback=code_callback)
 
     # Logic lấy tin nhắn và gửi đi
     @client.on(events.NewMessage(chats='t.me/thutele1234'))
