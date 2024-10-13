@@ -1,44 +1,47 @@
 import os
-import asyncio
-from flask import Flask, request, render_template
-from telethon import TelegramClient, events
+import sqlite3
+from time import sleep
+from telethon import TelegramClient, events, errors
 
-app = Flask(__name__)
+# Thay đổi các thông số sau đây cho đúng
+api_id = int(os.environ.get('API_ID', '21357718'))  # Nhập API_ID
+api_hash = os.environ.get('API_HASH', 'df3564e279df7787a6292c45b177524a')  # Nhập API_HASH
+phone_number = os.environ.get('PHONE_NUMBER', '+84367729142')  # Nhập PHONE_NUMBER
 
-# Cấu hình API ID, API Hash và số điện thoại từ biến môi trường
-api_id = os.environ.get('API_ID')  # Nhập API_ID
-api_hash = os.environ.get('API_HASH')  # Nhập API_HASH
-phone = os.environ.get('PHONE_NUMBER')  # Nhập PHONE_NUMBER
+# Hàm kết nối đến cơ sở dữ liệu với retry
+def connect_with_retry(db_name, retries=3):
+    for i in range(retries):
+        try:
+            conn = sqlite3.connect(db_name)
+            conn.execute('PRAGMA busy_timeout = 30000')  # Thay đổi timeout
+            return conn
+        except sqlite3.OperationalError:
+            if i < retries - 1:
+                sleep(1)  # Chờ 1 giây trước khi thử lại
+    raise Exception("Could not connect to database after multiple attempts.")
+
+# Kết nối đến cơ sở dữ liệu SQLite
+conn = connect_with_retry('session_db.sqlite')
 
 # Khởi tạo client Telegram
 client = TelegramClient('session_name', api_id, api_hash)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+async def main():
+    await client.start()
+    
+    try:
+        # Nếu chưa đăng nhập, yêu cầu người dùng nhập mã xác thực
+        if not await client.is_user_authorized():
+            print("Vui lòng nhập mã xác thực nhận được từ Telegram.")
+            code = input("Nhập mã xác thực: ")
+            await client.sign_in(phone_number, code)
+    except errors.FloodWait as e:
+        print(f"Bạn đã bị giới hạn. Vui lòng thử lại sau {e.seconds} giây.")
+    except Exception as e:
+        print(f"Có lỗi xảy ra: {e}")
 
-@app.route('/login', methods=['POST'])
-async def login():
-    code = request.form['code']
-    await client.start(phone)
+    print("Đăng nhập thành công!")
 
-    # Xác thực người dùng
-    if not await client.is_user_authorized():
-        try:
-            await client.sign_in(phone, code)
-            return "Đăng nhập thành công! Bây giờ bạn có thể lắng nghe tin nhắn."
-        except Exception as e:
-            return f"Lỗi: {str(e)}"
-
-@app.route('/listen')
-async def listen():
-    @client.on(events.NewMessage(chats='t.me/thutele1234'))
-    async def handler(event):
-        message = event.message.message
-        await client.send_message('t.me/thutele12344', message)
-
-    print("Đang lắng nghe tin nhắn mới...")
-    await client.run_until_disconnected()
-
-if __name__ == '__main__':
-    app.run(debug=True)
+# Chạy ứng dụng
+with client:
+    client.loop.run_until_complete(main())
