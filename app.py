@@ -1,36 +1,32 @@
+from telethon import TelegramClient, events
 import os
-from telethon import TelegramClient
-import logging
-import asyncio
 
-# Thiết lập logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+API_ID = os.environ.get('API_ID')
+API_HASH = os.environ.get('API_HASH')
+PHONE_NUMBER = os.environ.get('PHONE_NUMBER')
 
-api_id = os.getenv('API_ID', '21357718')
-api_hash = os.getenv('API_HASH', 'df3564e279df7787a6292c45b177524a')
-phone_number = os.getenv('PHONE_NUMBER', '+84367729142')
+# Thay đổi tên nhóm để lấy tin nhắn và gửi tin nhắn
+SOURCE_GROUP = 'sanbanshopee'  # Nhóm bạn muốn lấy tin nhắn
+TARGET_GROUP = 'thutele12344'    # Nhóm bạn muốn gửi tin nhắn đến
 
-client = TelegramClient('session_name', api_id, api_hash)
+client = TelegramClient('session_name', API_ID, API_HASH)
+
+@client.on(events.NewMessage(chats=SOURCE_GROUP))
+async def handler(event):
+    # Lấy nội dung tin nhắn
+    message_text = event.message.message
+    
+    # Nếu cần sửa đổi nội dung tin nhắn, có thể thực hiện ở đây
+    modified_message = message_text  # Sửa đổi nếu cần
+    
+    # Gửi tin nhắn vào nhóm mục tiêu
+    await client.send_message(TARGET_GROUP, modified_message)
+    print(f'Gửi tin nhắn: {modified_message}')
 
 async def main():
-    await client.start(phone=phone_number)
-    logger.info("Đăng nhập thành công")
+    await client.start()
+    print('Đăng nhập thành công!')
 
-    try:
-        async for message in client.iter_messages('thutele1234', limit=10):
-            if message.text:
-                logger.info(f"Đã lấy tin nhắn: {message.text}")
-                modified_message = modify_links(message.text)
-                logger.info(f"Tin nhắn đã sửa đổi: {modified_message}")
-                await client.send_message('thutele12344', modified_message)
-                logger.info("Tin nhắn đã được gửi đi")
-    except Exception as e:
-        logger.error(f"Có lỗi xảy ra: {e}")
-
-def modify_links(text):
-    return text.replace('lazada.com', 'example.com')
-
-if __name__ == "__main__":
-    with client:
-        client.loop.run_until_complete(main())
+with client:
+    client.loop.run_until_complete(main())
+    client.run_until_disconnected()
